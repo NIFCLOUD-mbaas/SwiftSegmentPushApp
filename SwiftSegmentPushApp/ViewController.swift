@@ -85,7 +85,7 @@ class ViewController: UIViewController,UITextFieldDelegate{
                 case .success:
                     print("取得成功:\(installation)")
                     DispatchQueue.main.async {
-                        self.updateTable()
+                        self.updateTable(installation)
                     }
                     
                 case let .failure(error):
@@ -94,9 +94,7 @@ class ViewController: UIViewController,UITextFieldDelegate{
         })
     }
     
-    func updateTable() {
-        //installationの生成
-        let installation = NCMBInstallation.currentInstallation
+    func updateTable(_ installation: NCMBInstallation) {
         //key（フィールド）の取得
         let keys:Array<String> = Array(installation._fields.keys)
 
@@ -145,6 +143,7 @@ class ViewController: UIViewController,UITextFieldDelegate{
                     let array = values as? [String]
                     let text = array?.joined(separator:",")
                     self.valueField.text = text
+                    self.valueField.accessibilityIdentifier = "tfChannels"
                 } else {
                     self.valueField.text = String(describing: values)
                 }
@@ -168,6 +167,7 @@ class ViewController: UIViewController,UITextFieldDelegate{
                 self.addKeyField.font = UIFont.systemFont(ofSize: 12)
                 self.addKeyField.placeholder = "追加key"
                 self.addKeyField.delegate = self
+                self.addKeyField.accessibilityIdentifier = "tfKey"
                 self.scroll.addSubview(self.addKeyField)
                 
                 //追加valueのTextField生成
@@ -178,12 +178,14 @@ class ViewController: UIViewController,UITextFieldDelegate{
                 self.addValueField.font = UIFont.systemFont(ofSize: 12)
                 self.addValueField.placeholder = "追加value"
                 self.addValueField.delegate = self
+                self.addValueField.accessibilityIdentifier = "tfValue"
                 self.scroll.addSubview(self.addValueField)
                 
                 //追加情報を更新するボタン生成
                 self.postButton = UIButton(frame: CGRect(x:0,y:0,width:100,height:50))
                 self.postButton.backgroundColor = UIColor.black
                 self.postButton.setTitle("更新",for:UIControl.State.normal)
+                self.postButton.accessibilityIdentifier = "btnSave"
                 self.postButton.setTitleColor(UIColor.white, for: UIControl.State.normal)
                 self.postButton.addTarget(self, action:#selector(postInstallation(sender:)), for: UIControl.Event.touchUpInside)
                 self.postButton.layer.position = CGPoint(x:self.view.frame.size.width/2,y:180 + CGFloat(i+1)*45)
@@ -231,6 +233,11 @@ class ViewController: UIViewController,UITextFieldDelegate{
                 case .success:
                     //insitallation更新成功時の処理
                     print("installation更新に成功しました")
+                    DispatchQueue.main.async {
+                        //viewの再読み込み
+                        self.loadView()
+                        self.viewDidLoad()
+                    }
                 case let .failure(error):
                     //installation更新失敗時の処理
                     print("installation更新に失敗しました :\(error)")
@@ -245,10 +252,6 @@ class ViewController: UIViewController,UITextFieldDelegate{
                     }
             }
         })
-        
-        //viewの再読み込み
-        loadView()
-        viewDidLoad()
     }
     
     
