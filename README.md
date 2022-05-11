@@ -22,10 +22,9 @@
 
 ## 動作環境
 
-* Mac OS 11.6(Big Sur)
-* Xcode Version 13.0
-* Simulator Version 13.0(970)
-* iPhone X (iOS15.0.2)
+* Mac OS 11.5.2(Big Sur)
+* Xcode ver. 13.2.1
+* iPhone 11 Pro Max (iOS15.2.1)
  * このサンプルアプリは、実機ビルドが必要です
 
 ※上記内容で動作確認をしています
@@ -236,6 +235,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
         return true
     }
+
+    func registerForPushNotifications() {
+        UNUserNotificationCenter.current() // 1
+            .requestAuthorization(options: [.alert, .sound, .badge]) { // 2
+                granted, error in
+                print("Permission granted: \(granted)") // 3
+                guard granted else { return }
+                self.getNotificationSettings()
+        }
+    }
+
+    func getNotificationSettings() {
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            print("Notification settings: \(settings)")
+            guard settings.authorizationStatus == .authorized else { return }
+            DispatchQueue.main.async {
+                UIApplication.shared.registerForRemoteNotifications()
+            }
+        }
+    }
     
     // デバイストークンが取得されたら呼び出されるメソッド
     func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
@@ -268,7 +287,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
                 case .success:
                     print("取得成功:\(installation)")
                     DispatchQueue.main.async {
-                        self.updateTable()
+                        self.updateTable(installation)
                     }
                     
                 case let .failure(error):
